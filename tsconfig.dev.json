@@ -1,0 +1,6 @@
+// Original https://github.com/bitjson/typescript-starter/blob/master/tsconfig.json
+{
+    "extends": "./tsconfig.json",
+    "include": ["./modules/**/*.ts"],
+    "exclude": ["workspaces/**/*", "packages/**/*", "projects/**/*"]
+}
