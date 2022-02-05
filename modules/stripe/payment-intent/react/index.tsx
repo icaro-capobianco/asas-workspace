@@ -77,7 +77,7 @@ export const View = ( payment : Partial<Type> ) => {
     return (
         <Box w='100%'>
             <Box w='100%' >
-                <VStack alignItems='stretch' minW='400px' minH='200px' >
+                <VStack alignItems='stretch' minH='200px' >
                         <Heading my={0} size='md' >Informações de pagamento</Heading>
                     <Box w='100%'>
                         <b>Valor:</b> {((payment.amount || 0) / 100).toLocaleString('pt-BR', {
