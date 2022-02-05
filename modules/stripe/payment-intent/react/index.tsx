@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { Box, Button, Center, Heading, Spinner, useBoolean, VStack } from '@chakra-ui/react'
 import { useStripe, PaymentElement, useElements } from '@stripe/react-stripe-js'
 import { useAsyncState } from 'asas-virtuais/modules/react/hooks'
-import Feathers from 'asas-virtuais/modules/feathers/react/feathers'
 
 import { Retrieve } from 'asas-virtuais/modules/feathers/react/methods'
 import { Provider } from 'asas-virtuais/modules/stripe/react/context'
@@ -66,7 +65,9 @@ export const View = ( payment : Partial<Type> ) => {
 
     
     const submit = useCallback( () => {
-        call().then( () => window.location.reload() )
+        call().then( () => {
+            window.location.reload()
+        } )
     }, [call] )
 
     if ( ! stripe || ! elements ) {
@@ -102,8 +103,8 @@ export const View = ( payment : Partial<Type> ) => {
                 </VStack>
 
             </Box>
-            {rejected ? (
-                <Box>Houve um erro: {typeof rejected === 'string' ? rejected : 'erro desconhecido'}</Box>
+            {typeof rejected === 'string' ? (
+                <Box>Houve um erro {rejected}</Box>
             ) : null}
         </Box>
     )
@@ -133,7 +134,7 @@ export const LoadPaymentWithProvider = ( {
     }
     if ( resolved ) {
         return (
-            <Provider pk={pk} clientSecret={resolved.client_secret as string} >
+            <Provider pk={pk} clientSecret={resolved.client_secret as string} locale='pt-BR' >
                 <View {...resolved} />
             </Provider>
         )

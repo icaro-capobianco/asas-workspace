@@ -41,7 +41,7 @@ export const useAsyncState = <
 			.catch( err => {
 				console.error(err)
 				setRejected(err)
-				return err
+				throw err
 			} )
 			.finally( setLoading.off )
 	}, [params, fn] )

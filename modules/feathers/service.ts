@@ -39,7 +39,7 @@ export type Filters<T> = {
     '$gt' ?: number | string,
     '$gte' ?: number | string,
     '$ne' ?: any,
-    '$or' ?: Query<T>
+    '$or' ?: Query<T>[]
 }
 
 export type Equality<T> = {
