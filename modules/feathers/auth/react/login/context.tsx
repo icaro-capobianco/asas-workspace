@@ -53,7 +53,7 @@ export const useLogin = ( { onSuccess } : Props ) => {
         e.preventDefault()
         await login()
         return false
-    }, [email, password, setAuth] )
+    }, [email, password, setAuth, login] )
     useEffect( () => {
         if ( onSuccess ) {
             if ( auth && auth.authentication.strategy === 'opake' ) {

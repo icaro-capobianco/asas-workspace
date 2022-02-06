@@ -1,6 +1,6 @@
 import { Service as FService, Params, ServiceMethods, NullableId } from 'asas-virtuais/modules/feathers/service'
 import { feathersResultToArray } from '../util'
-import { Timeout } from 'asas-virtuais/node_modules/@feathersjs/errors'
+import { GeneralError, Timeout } from 'asas-virtuais/node_modules/@feathersjs/errors'
 import { iff, disallow } from 'feathers-hooks-common'
 
 export type CreateEvent<T> = {
@@ -99,9 +99,12 @@ let newEventOrder = () => {
 }
 
 let shouldProcessEvent = ( event : SourceEvent<any> ) => {
-    let res = event.order === processEvent
-    processEvent++
-    return res
+    if ( event.order === processEvent ) {
+        processEvent++
+        return true
+    }
+    console.log(`Waiting for event ${processEvent}`)
+    return false
 }
 
 const service = <T>( { eventService, resourceService, id = 'id' } : {
@@ -113,8 +116,13 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
 } ) => {
 
     let process : string = 'original'
+    let _resourceName : string
 
     let setup = async ( app : any, resourceName : string ) => {
+
+        _resourceName = resourceName
+
+        console.log( 'Resource Name: ', resourceName )
 
         const $this : any = this
         if ( $this !== undefined ) {
@@ -123,24 +131,12 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
             }
         }
 
-        eventService.hooks({
-            before: {
-                create: ( context ) => {
-                    const event = context.data as SourceEvent<any>
-                    if ( context.path ) {
-                        event.resourceName = context.path
-                    }
-                    return context
-                }
-            }
-        })
-
         const queuedEvents = feathersResultToArray( await eventService.find( {
-            query : {
-                $sort : {
-                    order : -1
+            query: {
+                $sort: {
+                    order: -1
                 },
-                inQueue : true,
+                inQueue: true,
                 resourceName
             }
         } ) )
@@ -166,16 +162,32 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
 
     let processEvent = async <E extends SourceEvent<T>>( event : E ) => {
         console.log( `Processing event ${event.order}` )
+        console.log( `Event context\nResource name: ${event.resourceName}\nMethod:${event.type}` )
 
         console.log( 'Awaiting permission' )
         await permissionToProcessEvent( event )
         console.log( 'Permission granted' )
+        let result : any
+        let error : any
 
         try {
-            const result = await handleEvent( event )
+            result = await handleEvent( event )
+        } catch (error) {
+            console.error( 'Error handling event', error )
+            await eventService.patch( event.id, {
+                error : JSON.stringify(error),
+                errorAt : (new Date()).toISOString(),
+                processed : true,
+                inQueue: false,
+                process,
+            } )
+        }
+        if ( result && ! error ) {
+
             const affected = (Array.isArray( result ) ? result : [ result ]).map( (
                 a => (a as any)[ ( resourceService.id ?? 'id' ) ]
             ) )
+            console.log('Removing event from the queue')
             await eventService.patch( event.id, {
                 result : result,
                 resultAt : (new Date()).toISOString(),
@@ -185,16 +197,8 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
                 affected
             } )
             return result
-        } catch (error) {
-            eventService.patch( event.id, {
-                error : JSON.stringify(error),
-                errorAt : (new Date()).toISOString(),
-                processed : true,
-                inQueue: false,
-                process,
-            } )
-            throw error
         }
+        throw new GeneralError
     }
 
     let handleEvent = async<E extends SourceEvent<T>>( event : E ) => {
@@ -224,6 +228,7 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
                 data,
                 params: {...params, eventSourced: true},
                 createdAt: (new Date()).toISOString(),
+                resourceName: _resourceName
             } as const)
             try {
                 return await processEvent(event as SourceEvent<T>)
@@ -242,6 +247,7 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
                 data,
                 params: {...params, eventSourced: true},
                 createdAt: (new Date()).toISOString(),
+                resourceName: _resourceName
             } as const)
             try {
                 return await processEvent(event as SourceEvent<T>)
@@ -260,6 +266,7 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
                 data,
                 params: {...params, eventSourced: true},
                 createdAt: (new Date()).toISOString(),
+                resourceName: _resourceName
             } as const)
             try {
                 return await processEvent(event as SourceEvent<T>)
@@ -277,6 +284,7 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
                 target: id,
                 params: {...params, eventSourced: true},
                 createdAt: (new Date()).toISOString(),
+                resourceName: _resourceName
             } as const)
             try {
                 return await processEvent(event as SourceEvent<T>)

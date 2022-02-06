@@ -210,7 +210,7 @@ const service = <T extends AirtableData>( { base, table, apiKey, version = 'v0',
 		const queryParams : {
 			maxRecords ?: number
 			fields ?: string[]
-			queryFilters ?: string
+			filterByFormula ?: string
 			pageSize ?: number
 			sort ?: {
 				[K in keyof T] : 'asc' | 'desc'
@@ -234,7 +234,7 @@ const service = <T extends AirtableData>( { base, table, apiKey, version = 'v0',
 		const filters = queryFilters(params.query)
 
 		if ( filters ) {
-			queryParams.queryFilters = filters
+			queryParams.filterByFormula = filters
 		}
 
 		if ( limit ) {
@@ -303,7 +303,7 @@ const service = <T extends AirtableData>( { base, table, apiKey, version = 'v0',
 				records : T[],
 				offset ?: string
 			}>( `/`, {
-				params : mapped
+				params : mapped,
 			} ).then( res => (paginate ? ({
 				total : undefined,
 				skip : params?.query?.$skip,
