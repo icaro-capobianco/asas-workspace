@@ -36,3 +36,5 @@ unstable/*
 !unstable/.gitkeep
 
 .vscode
+
+.env
