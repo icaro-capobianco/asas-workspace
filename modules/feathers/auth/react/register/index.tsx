@@ -134,8 +134,8 @@ export const ConfirmPassword = ( {
 
 export const CaptchaComponent : FC = ( { children = 'I am not a robot' } ) => {
 
-    const { create } = Context.useContext()
-    const { pow } = Captcha.useContext()
+    const { create, loading } = Context.useContext()
+    const { pow, working } = Captcha.useContext()
     useEffect(() => {
         if ( pow && pow !== create.params?.headers?.authorization ) {
             create.setParams({
@@ -147,7 +147,7 @@ export const CaptchaComponent : FC = ( { children = 'I am not a robot' } ) => {
     }, [pow, create.setParams, create.params])
 
     return (
-        <Captcha.HumanCheckbox>
+        <Captcha.HumanCheckbox _disabled={{opacity: 0.5}} disabled={working || loading} >
             {children}
         </Captcha.HumanCheckbox>
     )

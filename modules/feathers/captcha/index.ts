@@ -9,6 +9,7 @@ import { Verifier, decode } from './crypto'
 import { generatePassword } from 'asas-virtuais/modules/common/node'
 
 export const setupCaptcha = () => ( app : Application ) => {
+
     app.use( ((req, res, next) => {
         const session = (req as any).session as Session & { captcha ?: string }
         if ( ! session.captcha )
@@ -16,7 +17,7 @@ export const setupCaptcha = () => ( app : Application ) => {
         const feathers = req.feathers
         if ( feathers )
             feathers.captcha = session.captcha
-        if ( ! req.cookies?.captcha ) {
+        if ( ! req.cookies?.captcha || req.cookies.captcha !== session.captcha ) {
             res.cookie( 'captcha', session.captcha, {
                 maxAge: 600000,
                 httpOnly: false
@@ -32,6 +33,20 @@ export const setupCaptcha = () => ( app : Application ) => {
         }
         next()
     }) as RequestHandler )
+
+    app.get('/captcha', ((req, res) => {
+        const session = (req as any).session as Session & { captcha ?: string }
+        if ( ! session.captcha ) {
+            session.captcha = generatePassword(8)
+        }
+        if ( ! req.cookies?.captcha || req.cookies.captcha !== session.captcha ) {
+            res.cookie( 'captcha', session.captcha, {
+                maxAge: 600000,
+                httpOnly: false
+            } )
+        }
+        res.json(session.captcha)
+    }) as RequestHandler)
 }
 
 export const verify = (difficulty: number) => {

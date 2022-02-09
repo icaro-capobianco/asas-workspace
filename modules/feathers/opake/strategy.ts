@@ -136,7 +136,7 @@ export const setupOPAKE = ( {
         after: {
             get : (context) => {
                 if ( context.params.provider !== undefined ) {
-                    discard('auth')(context)
+                    discard('auth')(context as any)
                 }
             }
         }

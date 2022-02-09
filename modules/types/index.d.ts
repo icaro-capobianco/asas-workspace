@@ -1,7 +1,12 @@
 import type { ServiceMethods, ServiceAddons, Application, HooksObject, HookMap, HookContext, Hook, Params } from '@feathersjs/feathers'
-import type { EventEmitter } from 'primus';
+import type React from 'react'
 
 module '@feathersjs/feathers' {
+
+    export interface Application {
+        configure (callback: (app: this) => void): this
+    }
+
 
     export type NullableId = string | number | null | undefined
 
@@ -28,11 +33,11 @@ module '@feathersjs/feathers' {
         ) : Promise<D extends Partial[] ? T[] : T>
     }
 
-    export interface ServiceAddons<T> extends Omit<ServiceAddons, 'hooks'> extends EventEmitter {
-        hooks<D extends T = T>(hooks: Partial<HooksObject<T>>): this
-        on(event: string, listener: ( data : T ) => any)
-        once(event: string, listener: ( data : T ) => any)
-    }
+    // export interface ServiceAddons<T> extends Omit<ServiceAddons, 'hooks'> extends EventEmitter {
+    //     hooks<D extends T = T>(hooks: Partial<HooksObject<T>>): this
+    //     on(event: string, listener: ( data : T ) => any)
+    //     once(event: string, listener: ( data : T ) => any)
+    // }
 
     export interface Application {
         get <T>(name: string): T
@@ -122,4 +127,9 @@ declare module '*?worker' {
       new (): Worker
     }
     export default workerConstructor
+}
+
+declare module '*.svg' {
+    const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>;
+    export default content;
 }
