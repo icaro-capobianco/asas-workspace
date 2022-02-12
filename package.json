@@ -48,6 +48,11 @@
     "zod": "^3.11.6"
   },
   "dependencies": {
+    "@azure/arm-compute": "^17.1.0",
+    "@azure/arm-network": "^26.0.0",
+    "@azure/arm-resources": "^5.0.0",
+    "@azure/arm-storage": "^17.0.0",
+    "@azure/identity": "^2.0.2",
     "@bugsnag/js": "^7.16.1",
     "@bugsnag/plugin-express": "^7.16.1",
     "@bugsnag/plugin-react": "^7.16.1",
@@ -65,6 +70,7 @@
     "@stripe/stripe-js": "^1.22.0",
     "airtable": "^0.11.1",
     "asas-virtuais": "workspace:^1.0.0",
+    "aws-sdk": "^2.1043.0",
     "axios": "^0.21.4",
     "browser-buffer": "^0.0.1-1",
     "crypto-js": "^4.1.1",
@@ -77,6 +83,7 @@
     "js-cookie": "^3.0.1",
     "libsodium-wrappers-sumo": "^0.7.9",
     "lodash": "^4.17.21",
+    "mongodb": "^4.3.1",
     "node-forge": "^1.2.1",
     "nodemailer": "^6.7.2",
     "nodemailer-smtp-transport": "^2.7.4",
