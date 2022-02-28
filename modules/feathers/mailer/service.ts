@@ -1,7 +1,9 @@
 import { Application } from '@feathersjs/express'
 import type SMTPTransport from 'nodemailer/lib/smtp-transport'
 import Mailer from 'feathers-mailer'
-import { disallow } from 'feathers-hooks-common'
+import * as hooks from 'feathers-hooks-common'
+
+const { disallow } = hooks
 
 export default ( { transport }: { transport: SMTPTransport} ) => (app : Application) => {
   app.use('/mailer', Mailer(transport))

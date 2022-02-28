@@ -3,7 +3,8 @@ import type { HookContext } from '@feathersjs/feathers'
 import type { RequestHandler } from 'express'
 import type { Session } from 'express-session'
 
-import { BadRequest } from '@feathersjs/errors'
+import * as Errors from '@feathersjs/errors'
+const { BadRequest } = Errors
 
 import { Verifier, decode } from './crypto'
 import { generatePassword } from 'asas-virtuais/modules/common/node'

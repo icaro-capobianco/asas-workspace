@@ -7,9 +7,13 @@ import type { Service, Params } from '../service'
 import { authentication, registration, AuthenticationContext, RegistrationContext } from 'asas-virtuais/modules/opake/server'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 
-import { NotAuthenticated } from '@feathersjs/errors'
+import * as Errors from '@feathersjs/errors'
 import { feathersResultToArray } from '../util'
-import { discard } from 'feathers-hooks-common'
+import * as hooks from 'feathers-hooks-common'
+
+const { discard } = hooks
+
+const { NotAuthenticated } = Errors
 
 type Options = {
     sk : string

@@ -24,7 +24,7 @@ export const useCaptcha = () => {
                 resolve( data )
             }
         })
-        worker.postMessage({type: 'work', data: {prefix, difficulty: 20}})
+        worker.postMessage({type: 'work', data: {prefix, difficulty: 18}})
         setTimeout( () => reject(), 20000 )
     } ), [axios] )
     useEffect( () => {

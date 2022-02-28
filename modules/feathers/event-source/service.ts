@@ -1,7 +1,11 @@
-import { Service as FService, Params, ServiceMethods, NullableId } from 'asas-virtuais/modules/feathers/service'
+import type { Service } from '@feathersjs/feathers'
+import type { Params, ServiceMethods, NullableId } from 'asas-virtuais/modules/feathers/service'
+import * as Errors from '@feathersjs/errors'
+import * as hooks from 'feathers-hooks-common'
 import { feathersResultToArray } from '../util'
-import { GeneralError, Timeout } from 'asas-virtuais/node_modules/@feathersjs/errors'
-import { iff, disallow } from 'feathers-hooks-common'
+
+const { iff, disallow } = hooks
+const { GeneralError, Timeout } = Errors
 
 export type CreateEvent<T> = {
     type : 'create'
@@ -17,7 +21,7 @@ export type UpdateEvent<T> = {
     target ?: NullableId
 }
 export type PatchEvent<T> = {
-    type :'patch'
+    type : 'patch'
     data : Partial<T>
     result ?: T | T[]
     params ?: Partial<Params<T>>
@@ -48,7 +52,9 @@ export type SourceEvent<T> = (CreateEvent<T> | UpdateEvent<T> | PatchEvent<T> | 
 let eventsSet = new Set()
 let processEvent : number = 1
 
-export const setupEvents = async ( eventsService : FService<SourceEvent<any>> ) => {
+export type EventSourceService = Service<SourceEvent<any>>
+
+export const setupEvents = async ( eventsService : EventSourceService ) => {
 
     const lastEvent = feathersResultToArray ( await eventsService.find( {
         query : {
@@ -103,12 +109,12 @@ let shouldProcessEvent = ( event : SourceEvent<any> ) => {
         processEvent++
         return true
     }
-    console.log(`Waiting for event ${processEvent}`)
+    console.log(`Waiting for event ${processEvent} to be processed to process ${event.order}`)
     return false
 }
 
 const service = <T>( { eventService, resourceService, id = 'id' } : {
-    eventService : FService<SourceEvent<T>>
+    eventService : EventSourceService
     resourceService : ServiceMethods<T> & { id : string }
     rebuild ?: boolean
     timeout ?: number
@@ -141,7 +147,7 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
             }
         } ) )
         console.log( `${queuedEvents.length} events to process on: ${resourceName}` )
-        for ( const event of queuedEvents ) {
+        for ( const event of queuedEvents.reverse() ) {
             await processEvent(event)
         }
     }
@@ -152,8 +158,10 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
                 resolve(event)
             } else {
                 eventService.on('patched', ( e ) => {
-                    if ( e.processed && event.order === e.order + 1 ) {
-                        resolve(event)
+                    if ( e.processed ) {
+                        if ( shouldProcessEvent( event ) ) {
+                            resolve(event)
+                        }
                     }
                 })
             }
@@ -161,12 +169,11 @@ const service = <T>( { eventService, resourceService, id = 'id' } : {
     }
 
     let processEvent = async <E extends SourceEvent<T>>( event : E ) => {
-        console.log( `Processing event ${event.order}` )
-        console.log( `Event context\nResource name: ${event.resourceName}\nMethod:${event.type}` )
+        console.log( `Processing event ${event.order}`, `Event context\nResource name: ${event.resourceName}\nMethod:${event.type}` )
 
-        console.log( 'Awaiting permission' )
+        console.log( `Awaiting permission for event ${event.order}` )
         await permissionToProcessEvent( event )
-        console.log( 'Permission granted' )
+        console.log( `Permission granted for event ${event.order}` )
         let result : any
         let error : any
 

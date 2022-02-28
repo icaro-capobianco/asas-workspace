@@ -1,8 +1,8 @@
 import { Hook, HookContext } from '@feathersjs/feathers'
 import * as Errors from '@feathersjs/errors'
 import { z } from 'zod'
-import { NotAuthenticated } from '@feathersjs/errors'
 
+const { NotAuthenticated } = Errors
 
 export const reportError : Hook = ( context ) => {
     console.error(`

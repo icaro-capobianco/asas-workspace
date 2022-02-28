@@ -1,11 +1,10 @@
 import type { Paginated, ServiceAddons, Params as FParams } from '@feathersjs/feathers'
-
 import type { IncomingHttpHeaders  } from 'http'
 
 export type Service<T> = ServiceMethods<T> & ServiceAddons<T>
 export type InferServiceEntity<S> = S extends Service<infer T> ? T : never
 
-type Operators = 
+export type Operators = 
 | '$in'
 | '$nin'
 | '$lt'
@@ -47,14 +46,14 @@ export type Equality<T> = {
 }
 export type Query<T> = Filters<T> & Ordering<T> & Limits & Selection<T> & Equality<T>
 
-export interface Params<T> extends Omit<FParams<T>, 'query' | 'provider' | 'headers'> {
+export interface Params<T> extends Omit<FParams, 'query' | 'provider' | 'headers'> {
     query ?: Query<T>
     provider ?: string
     headers ?: IncomingHttpHeaders
 }
 
 export interface ServiceMethods<
-    T,
+    T = any,
     P extends Partial<Params<T>> = Partial<Params<T>>,
 > {
 

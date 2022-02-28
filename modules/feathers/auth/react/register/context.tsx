@@ -1,25 +1,19 @@
 import type { Registration } from 'asas-virtuais/modules/opake/common'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useBoolean } from '@chakra-ui/react'
 
 import * as OPAKE from 'asas-virtuais/modules/opake/client'
-import { Create } from 'asas-virtuais/modules/feathers/react/methods'
 import { makeHookContext } from 'asas-virtuais/modules/react/context'
 import Login from '../login/context'
 import Feathers from 'asas-virtuais/modules/feathers/react/feathers'
-
-const proxy = () => Create.useMethod<any>({
-    serviceName: ''
-})
+import * as Captcha from 'asas-virtuais/modules/feathers/captcha/react'
 
 export type Props = {
-    create : ReturnType<typeof proxy>
+    service: string
 }
 
-export const useRegister = ( {
-    create,
-} : Props ) => {
+export const useRegister = ( { service } : Props ) => {
 
     const login = Login.useContext()
 
@@ -41,6 +35,8 @@ export const useRegister = ( {
         return (confirmPassword?.length ?? 0) > 1 && confirmPassword !== password
     }, [confirmPassword, password])
 
+    const { pow } = Captcha.useContext()
+
     const register = useCallback( async () => {
         const registration = OPAKE.registration()
         try {
@@ -56,7 +52,12 @@ export const useRegister = ( {
             if ( ! auth ) {
                 throw new Error('Error on registration')
             }
-            create.setData({ auth, email })
+            await feathers.service(service).create({ auth, email }, {
+                headers: {
+                    'authorization': pow
+                }
+            })
+            login.login()
         } catch (error) {
             console.error(error)
             console.log( 'Error details', {
@@ -66,38 +67,16 @@ export const useRegister = ( {
             } )
             setError(error as Error)
         }
-    }, [email, create.setData, create.params, create.data, password] )
-
-    useEffect( () => {
-        const auth = create.data?.auth
-        if ( auth && ! create.resolved && ! create.loading ) {
-            setLoading.on()
-            create.call().finally(setLoading.off)
-        }
-    }, [create.call, create.data, create.params, create.data?.auth] )
-
-    useEffect( () => {
-        if ( create.resolved && ! login.loading ) {
-            login.login()
-        }
-    }, [create.resolved] )
-
-    useEffect( () => {
-        if ( create.rejected ) {
-            console.error(create.rejected)
-            create.setData({auth: undefined})
-        }
-    }, [create.rejected] )
+    }, [email, password, pow] )
 
     const submitForm = useCallback( async (e : any) => {
         e.preventDefault()
         setLoading.on()
-        if ( create.loading ) return
         if ( conflictPasswords ) return
         await register()
         setLoading.off()
         return false
-    }, [create.call, create.loading, conflictPasswords] )
+    }, [conflictPasswords, register, email, password, pow] )
 
     return {
         error,
@@ -110,8 +89,7 @@ export const useRegister = ( {
         confirmPassword,
         setConfirmPassword,
         conflictPasswords,
-        submitForm,
-        create
+        submitForm
     }
 }
 

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Initializes the `authmanagement` service on path `/authmanagement`
 import { Application, HookContext } from '@feathersjs/feathers'
 import authManagement from 'feathers-authentication-management-ts'
 import notifier from 'asas-virtuais/modules/feathers/auth/notifier'

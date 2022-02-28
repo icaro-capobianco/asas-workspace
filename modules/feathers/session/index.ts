@@ -11,7 +11,6 @@ export default async ( app : any ) => {
 
     const protocol = isDevelopment ? 'redis' : 'rediss'
 
-
     const username = process.env.REDIS_USER as string
     const password = process.env.REDIS_PASS as string
     const host = process.env.REDIS_HOST as string
